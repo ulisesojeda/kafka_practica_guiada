@@ -190,9 +190,11 @@ kafka-topics --bootstrap-server kafka1:19092 --topic test-topic --describe
 
 ```bash
 kafka-topics --bootstrap-server kafka1:19092 --create --topic compact-topic --config cleanup.policy=compact`
-   Establecer el tiempo máximo antes de compactar (mantener la última entrada pr cada key)
-   `kafka-configs --bootstrap-server kafka1:19092 --entity-type topics --entity-name compact-topic --alter --add-config max.compaction.lag.ms=60000
 
+# Establecer el tiempo máximo antes de compactar (mantener la última entrada de cada key)
+kafka-configs --bootstrap-server kafka1:19092 --entity-type topics --entity-name compact-topic --alter --add-config max.compaction.lag.ms=60000
+
+# Producir algunos eventos
 kafka-console-producer --bootstrap-server kafka1:19092 --topic compact-topic --property "parse.key=true" --property "key.separator=,"
 
 > 1,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -607,4 +609,10 @@ Modificar los conectores para sincronizar además la tabla **products**
 cd images
 docker build -f docker-runner.yml -t runner ../
 docker run --network="host" -it runner
+```
+
+## Anexo 2: Solucionar problemas con la ejecución de contenedores
+
+```bash
+docker system prune
 ```
