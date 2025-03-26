@@ -17,25 +17,11 @@ docker run -p 9092:9092 --rm --name kafka apache/kafka:3.7.0
 ### Validar la ejecución
 
 ```bash
-docker exec -it kafka bash
+docker exec -it kafka [bash](bash)
 
 export PATH=$PATH:/opt/kafka/bin/
-kafka-configs.sh --bootstrap-server localhost:9092 --entity-type topics --describe
+kafka-configs.sh --bootstrap-server localhost:9092 --entity-type brokers --describe
 ```
-
-## Kafka UI
-
-```bash
-docker run --network="host" -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true provectuslabs/kafka-ui
-```
-
-Abrir navegador en [Kafka-UI](http://localhost:8080)
-
-Configurar un nuevo cluster con:
-
-**Host**: localhost
-
-**Port**: 9092
 
 ## Admin API
 
@@ -144,8 +130,8 @@ docker-compose -f docker-compose-cluster-kafka.yml up
 - Acceder a [Kafka-UI](http://localhost:8080) (Opcional)
 
 Configurar un nuevo cluster con:
-**Host**: localhost
-**Port**: 9092
+**Host**: kafka1
+**Port**: 19092
 
 - Acceder al broker 1 (2 y 3 también es posible)
 
@@ -569,8 +555,11 @@ kafka-console-consumer --bootstrap-server broker:29092 --topic dlq-file-sink-top
 curl -X DELETE http://localhost:8083/connectors/local-file-sink
 ```
 
+### Ejercicio de conectores: 
+Definir 2 conectores que sincronicen los ficheros **/tmp/source.txt** y **/tmp/destination.txt**
 
 ### Kafka standalone con Connect/Debezium
+Los conectores están definidos dentro del Dockerfile **images/docker-connect-debezium.yml** por simplicidad.
 
 1. Desplegar contenedores con Postgres y Kafka
 ```bash
@@ -597,6 +586,10 @@ create database cdc;
 5. Añadir filas a la tabla **postgres.public.orders**
 
 6. Verificar que las filas se sincronizan en **cdc.public.table_public_orders**
+
+### Ejercicio Kafka Connect:
+Modificar los conectores para sincronizar además la tabla **products**
+
 
 ## Schema registry
 # TODO Explicacion y diagrama de Schema registry
