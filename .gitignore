@@ -1,0 +1,50 @@
+gradle
+build.gradle
+
+# Gradle build output directories
+/build/
+/out/
+
+# Gradle wrapper binaries
+/gradle/wrapper/gradle-wrapper.jar
+/gradle/wrapper/gradle-wrapper.properties
+
+# Gradle caches and logs
+.gradle/
+!gradle/wrapper/gradle-wrapper.properties
+
+# Compiled Java files
+*.class
+
+# IDE-specific files (IntelliJ IDEA, Eclipse, VSCode)
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+*.factorypath
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*.swn
+
+# Dependency caches (may be large!)
+/.gradle/
+/build/
+
+# Ignore JAR/WAR files
+*.jar
+*.war
+*.ear
+
+# Ignore generated files
+bin/
+target/
+
+# Maven wrapper files (if using both Gradle and Maven)
+.mvn/
+mvnw*

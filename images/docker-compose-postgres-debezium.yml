@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: docker-postgres.yml
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_POSTGRES: postgres 
+      POSTGRES_PASSWORD: root 
+    entrypoint: ["docker-entrypoint.sh", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10"]
+    ports:
+      - "5432:5432"
+
+  kafka_connect:
+    build:
+      context: .
+      dockerfile: docker-connect-debezium.yml
+    container_name: kafka-connect
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: root
+      DATABASE_NAME: postgres
+    ports:
+      - "9092:9092"
+
+volumes:
+  pg_data:
+

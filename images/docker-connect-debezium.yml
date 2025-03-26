@@ -1,0 +1,113 @@
+FROM debian:bookworm-slim
+
+RUN apt update
+RUN apt install -y curl
+RUN apt install -y default-jre
+RUN apt install -y wget
+RUN rm -rf /var/lib/apt/lists/*
+
+# Download Kafka
+RUN wget https://dlcdn.apache.org/kafka/3.9.0/kafka_2.13-3.9.0.tgz -O /opt/kafka_2.13-3.9.0.tgz
+RUN tar -xzf /opt/kafka_2.13-3.9.0.tgz -C /opt
+RUN rm -rf /opt/kafka_2.13-3.9.0.tgz
+
+# Debezium libs
+RUN wget https://repo1.maven.org/maven2/io/debezium/debezium-api/3.0.7.Final/debezium-api-3.0.7.Final.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/io/debezium/debezium-connector-jdbc/3.0.7.Final/debezium-connector-jdbc-3.0.7.Final.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/3.0.7.Final/debezium-connector-postgres-3.0.7.Final.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/io/debezium/debezium-core/3.0.7.Final/debezium-core-3.0.7.Final.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/io/debezium/debezium-sink/3.0.7.Final/debezium-sink-3.0.7.Final.jar -P /opt/kafka_2.13-3.9.0/libs/
+
+# Postgres lib
+RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.6.1/postgresql-42.6.1.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+
+# Hibernate libs
+RUN wget https://repo1.maven.org/maven2/org/hibernate/orm/hibernate-core/6.4.8.Final/hibernate-core-6.4.8.Final.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+RUN wget https://repo1.maven.org/maven2/org/hibernate/orm/hibernate-c3p0/6.4.8.Final/hibernate-c3p0-6.4.8.Final.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+RUN wget https://repo1.maven.org/maven2/org/hibernate/common/hibernate-commons-annotations/6.0.6.Final/hibernate-commons-annotations-6.0.6.Final.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+
+# Jakarta libs
+RUN wget https://repo1.maven.org/maven2/jakarta/persistence/jakarta.persistence-api/3.1.0/jakarta.persistence-api-3.1.0.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/2.0.2/jakarta.validation-api-2.0.2.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.0/jakarta.xml.bind-api-4.0.0.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/jakarta/ws/rs/jakarta.ws.rs-api/2.1.6/jakarta.ws.rs-api-2.1.6.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+
+# Classmate
+RUN wget https://repo1.maven.org/maven2/com/fasterxml/classmate/1.5.1/classmate-1.5.1.jar -P /opt/kafka_2.13-3.9.0/libs/  
+
+# Jboss libs
+RUN wget https://repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.5.0.Final/jboss-logging-3.5.0.Final.jar -P /opt/kafka_2.13-3.9.0/libs/
+
+# mchange
+RUN wget https://repo1.maven.org/maven2/com/mchange/mchange-commons-java/0.2.19/mchange-commons-java-0.2.19.jar -P /opt/kafka_2.13-3.9.0/libs/
+RUN wget https://repo1.maven.org/maven2/com/mchange/c3p0/0.9.5.5/c3p0-0.9.5.5.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+
+# bytebuddy
+RUN wget https://repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.14.11/byte-buddy-1.14.11.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+
+# antlr
+RUN wget https://repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.10.1/antlr4-runtime-4.10.1.jar -P /opt/kafka_2.13-3.9.0/libs/ 
+
+
+WORKDIR /opt/kafka_2.13-3.9.0
+
+# Define Kafka Connect connectors
+RUN cat > config/source-postgres.properties <<EOF
+   name=postgres-source-connector
+   connector.class=io.debezium.connector.postgresql.PostgresConnector
+   tasks.max=1
+
+   connection.url=jdbc:postgresql://postgres:5432/postgres
+   connection.user=postgres
+   connection.password=root
+   database.hostname=postgres
+   database.user=postgres
+   database.dbname=postgres
+   database.password=root
+   
+   mode=incrementing
+   incrementing.column.name=id
+   topic.creation.enable=true
+   topic.creation.default.replication.factor=1
+   topic.creation.default.partitions=1
+   topic.prefix=table
+   table.include.list=public.orders
+   poll.interval.ms=1000
+EOF
+
+RUN cat > config/sink-postgres.properties <<EOF
+   name=postgres-sink-connector
+   connector.class=io.debezium.connector.jdbc.JdbcSinkConnector
+   tasks.max=1
+
+   connection.url=jdbc:postgresql://postgres:5432/cdc
+   connection.username=postgres
+   connection.password=root
+   
+   hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+   insert.mode=insert
+   
+   primary.key.mode=record_key
+   schema.evolution=basic
+   use.time.zone=UTC
+   topics=table.public.orders
+EOF
+
+# Start script that runs Kafka broker and Connect
+RUN cat > /opt/kafka_2.13-3.9.0/start.sh <<EOF
+#! /bin/bash
+bin/kafka-storage.sh format --standalone -t RANDCLUSTER -c config/kraft/server.properties
+bin/kafka-server-start.sh config/kraft/server.properties &
+sleep 10
+bin/connect-standalone.sh config/connect-standalone.properties config/source-postgres.properties config/sink-postgres.properties &
+
+while true; do # Infinity loop
+:
+done
+EOF
+
+
+RUN chmod +x /opt/kafka_2.13-3.9.0/start.sh
+
+ENTRYPOINT ["/opt/kafka_2.13-3.9.0/start.sh"]

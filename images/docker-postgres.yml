@@ -1,0 +1,6 @@
+FROM postgres:latest
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=root
+RUN apt-get update && apt-get install -y postgresql-17-decoderbufs
+
+
