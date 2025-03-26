@@ -17,7 +17,7 @@ docker run -p 9092:9092 --rm --name kafka apache/kafka:3.7.0
 ### Validar la ejecución
 
 ```bash
-docker exec -it kafka [bash](bash)
+docker exec -it kafka bash
 
 export PATH=$PATH:/opt/kafka/bin/
 kafka-configs.sh --bootstrap-server localhost:9092 --entity-type brokers --describe
@@ -126,14 +126,6 @@ Para este apartado utilizaremos docker-compose con un cluster de 3 brokers y Zoo
 cd images
 docker-compose -f docker-compose-cluster-kafka.yml up
 ```
-
-- Acceder a [Kafka-UI](http://localhost:8080) (Opcional)
-
-Configurar un nuevo cluster con:
-**Host**: kafka1
-**Port**: 19092
-
-- Acceder al broker 1 (2 y 3 también es posible)
 
 ```bash
 docker exec -it kafka-broker-1 bash
@@ -311,7 +303,7 @@ pip install kafka-python
 1. Crear topic con 3 particiones
 
 ```bash
-[kafka topics](kafka-topics) --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 3
+kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 3
 ```
 
 2. Ejecutar el productor
@@ -439,10 +431,12 @@ Además connect nos provee de un (API REST)[https://docs.confluent.io/platform/c
 Además existe un (Hub)[https://www.confluent.io/hub/] donde podremos buscar y descargar los connectors oficiales y no oficiales que necesitemos.
 
 Para este apartado utilizaremos el docker compose de Confluent
+
 ```bash
 docker-compose -f docker-compose-confluent.yml up
 
 ```
+
 kafka-console-producer --bootstrap-server broker:29092 --topic compact-topic --property "parse.key=true" --property "key.separator=,"
 
 ### Conector de ficheros - FileStream
@@ -513,7 +507,8 @@ curl -X GET http://localhost:8083/connectors/local-file-source/offsets
 curl -X DELETE http://localhost:8083/connectors/local-file-source
 ```
 
-### FileSinkConnector 
+### FileSinkConnector
+
 Crearemos un conector que almacena todo los eventos (correctos) en un fichero y los inválidos en un topic (dlq-file-sink-topic)
 
 1. Creamos el conector mediante una llamada a la API
@@ -524,6 +519,7 @@ curl -d @"file_sink.json" -H "Content-Type: application/json" -X POST http://loc
 ```
 
 2. Verificamos el estado del conector
+
 ```bash
 curl -X GET http://localhost:8083/connectors/local-file-sink/status
 ```
@@ -540,28 +536,34 @@ Control+C
 ```
 
 4. Validamos que los eventos válidos (JSON) se añaden al fichero definido en el conector
+
 ```bash
 # Desde el contenedor de Connect
 cat /tmp/output.txt
 ```
 
 5. Y que los inválidos son enviados al DLQ
+
 ```bash
 kafka-console-consumer --bootstrap-server broker:29092 --topic dlq-file-sink-topic --from-beginning
- ```
+```
 
 6. Eliminamos el conector
+
 ```bash
 curl -X DELETE http://localhost:8083/connectors/local-file-sink
 ```
 
-### Ejercicio de conectores: 
+### Ejercicio de conectores:
+
 Definir 2 conectores que sincronicen los ficheros **/tmp/source.txt** y **/tmp/destination.txt**
 
 ### Kafka standalone con Connect/Debezium
+
 Los conectores están definidos dentro del Dockerfile **images/docker-connect-debezium.yml** por simplicidad.
 
 1. Desplegar contenedores con Postgres y Kafka
+
 ```bash
 cd images
 docker-compose  -f docker-compose-postgres-debezium.yml up
@@ -570,6 +572,7 @@ docker-compose  -f docker-compose-postgres-debezium.yml up
 2. Acceder a la instancia de Posgres mediante DBeaver, DataGrip, psql, etc
 
 3. Crear la tabla a replicar
+
 ```sql
    CREATE TABLE postgres.public.orders (
    id int4 NOT NULL,
@@ -579,6 +582,7 @@ docker-compose  -f docker-compose-postgres-debezium.yml up
 ```
 
 4. Create la base de datos donde se almacenará la réplica
+
 ```sql
 create database cdc;
 ```
@@ -588,15 +592,17 @@ create database cdc;
 6. Verificar que las filas se sincronizan en **cdc.public.table_public_orders**
 
 ### Ejercicio Kafka Connect:
+
 Modificar los conectores para sincronizar además la tabla **products**
 
-
 ## Schema registry
+
 # TODO Explicacion y diagrama de Schema registry
 
 1. Ejecutar producer_schema_registry.py
 
 2. Forzar backward compatibility
+
 ```bash
  curl -X PUT http://localhost:8081/config/users-value --header "Content-Type: application/json" --data '{"compatibility": "BACKWARD"}'
 ```
@@ -605,16 +611,14 @@ Modificar los conectores para sincronizar además la tabla **products**
 
 4. Ejecutar producer2_schema_registry.py y verificar error de backward compatibility
 
-
 ## Streams API
 
 ## KSQL
 
-
 ## Anexo 1: Ejecución de ejemplos desde un contenedor
+
 ```bash
 cd images
 docker build -f docker-runner.yml -t runner ../
 docker run --network="host" -it runner
 ```
-
