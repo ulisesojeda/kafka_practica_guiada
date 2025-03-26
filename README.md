@@ -254,13 +254,21 @@ kafka-console-consumer --bootstrap-server kafka1:19092 --topic console-example -
 
 ¿Qué pasa cuándo este arranca?
 
-**Solución**:
+<details>
+  <summary><b>Solución</b></summary>
+
 El consumidor consume todos los mensajes
+
+</details>
 
 ¿Qué pasará si añadimos otro consumidor?
 
-**Solución**:
+<details>
+  <summary><b>Solución</b></summary>
+
 Tenemos dos consumidores consumiendo exactamente los mismos mensajes.
+
+</details>
 
 ### Ahora introduciremos dos consumidores formando un grupo de consumo:
 
