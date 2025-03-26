@@ -189,7 +189,7 @@ kafka-topics --bootstrap-server kafka1:19092 --topic test-topic --describe
 4. Topic con **cleanup.policy=compact**
 
 ```bash
-kafka-topics --bootstrap-server kafka1:19092 --create --topic compact-topic --config cleanup.policy=compact`
+kafka-topics --bootstrap-server kafka1:19092 --create --topic compact-topic --config cleanup.policy=compact
 
 # Establecer el tiempo máximo antes de compactar (mantener la última entrada de cada key)
 kafka-configs --bootstrap-server kafka1:19092 --entity-type topics --entity-name compact-topic --alter --add-config max.compaction.lag.ms=60000
