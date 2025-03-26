@@ -144,6 +144,18 @@ kafka-topics --bootstrap-server kafka1:19092 --alter --topic my-topic --partitio
 kafka-topics --bootstrap-server kafka1:19092 --topic my-topic --describe
 ```
 
+### Escritura y lectura de topics con el console-producer / console-consumer
+
+```bash
+kafka-console-producer --bootstrap-server kafka1:19092 --topic my-topic --property "parse.key=true" --property "key.separator=,"
+>1,Topic
+>2,Kafka
+>3,Pruebas
+
+# En otra terminal
+kafka-console-consumer --bootstrap-server kafka1:19092 --topic my-topic --property print.key=true --from-beginning
+```
+
 ### Ejercicio 2. Administración de topics
 
 1. Crea un topic con 3 particiones, factor de replica 3, y que sincronice tras 5 mensajes.
