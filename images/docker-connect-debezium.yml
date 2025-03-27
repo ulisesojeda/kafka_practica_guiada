@@ -73,6 +73,7 @@ RUN cat > config/source-postgres.properties <<EOF
    topic.creation.default.partitions=1
    topic.prefix=table
    table.include.list=public.orders
+   #table.include.list=public.orders,public.products
    poll.interval.ms=1000
 EOF
 
@@ -92,6 +93,7 @@ RUN cat > config/sink-postgres.properties <<EOF
    schema.evolution=basic
    use.time.zone=UTC
    topics=table.public.orders
+   #topics=table.public.orders,table.public.orders
 EOF
 
 # Start script that runs Kafka broker and Connect

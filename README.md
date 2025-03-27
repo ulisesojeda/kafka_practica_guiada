@@ -320,6 +320,7 @@ kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --par
 ```
 
 2. Ejecutar el productor
+
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
@@ -328,6 +329,7 @@ python3 producer.py
 ```
 
 3. Ejecutar el consumidor
+
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
@@ -365,15 +367,20 @@ kafka-consumer-groups --bootstrap-server kafka1:19092  --topic simple-topic --re
 
 7. Paralelizar el consumo de mensajes mediante varios consumidores pertenecientes al mismo consumer-group
    . Eliminar el topic simple-topic
+
    ```bash
    kafka-topics --bootstrap-server kafka1:19092  --topic simple-topic --delete
    ```
+
    . Crear el topic con 2 particiones
+
    ```bash
    kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 2
    ```
+
    . Ejecutar 2 consumidores en terminales distintas
-   . Ejecutar el productor varias veces y verificar que lleguen diferentes mensajes alos consumidores
+
+   . Ejecutar el productor y enviar mensajes con diferentes keys. Verificar que lleguen diferentes mensajes a los consumidores
 
 Para solucionar posibles errores:
 
@@ -442,6 +449,7 @@ pip install confluent_kafka  # No es necesario desde el contenedor
 ```
 
 2. Ejecutar el productor
+
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
@@ -450,6 +458,7 @@ python3 producer_tx.py
 ```
 
 3. Ejecutar el consumidor
+
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
@@ -459,17 +468,17 @@ python3 consumer_tx.py
 
 ## Kafka Connect
 
-Connect es una herramienta que nos permite ingestar desde y hacia sistemas de persistencia externos (incluidos topics de kafka) usando workers (maquinas tanto en modo stand alone como distribuido) donde tendremos instalado el core de Connect (normalmente una instalación común de kafka nos valdría) usando para ello una serie de plugins (connectors).
+Connect es una herramienta que nos permite ingestar desde y hacia sistemas de persistencia externos (incluidos topics de kafka) usando workers (máquinas tanto en modo standalone como distribuido) donde tendremos instalado el core de Connect (normalmente una instalación común de Kafka nos valdría) usando para ello una serie de plugins (connectors).
 
 Como cualquier otra API construida "on top" of producer/consumer utiliza la propia infraestructura de Kafka para asegurarnos la persistencia, semánticas de entrega (es capaz de asegurar semántica exactly once, dependiendo del conector).
 
-Mas info sobre como levantar connect e instalar plugin [aquí](https://docs.confluent.io/platform/current/connect/userguide.html)
+Mas info sobre como levantar Connect e instalar plugins [aquí](https://docs.confluent.io/platform/current/connect/userguide.html)
 
 Además connect nos provee de un [API REST](https://docs.confluent.io/platform/current/connect/references/restapi.html) para poder interactuar de manera amigable.
 
-Además existe un [Hub](https://www.confluent.io/hub/) donde podremos buscar y descargar los connectors oficiales y no oficiales que necesitemos.
+Existe un [Hub](https://www.confluent.io/hub/) donde podremos buscar y descargar los connectors oficiales y no oficiales que necesitemos.
 
-Para este apartado utilizaremos el docker compose de Confluent
+**Nota**: Para este apartado utilizaremos el docker compose de Confluent
 
 ```bash
 docker-compose -f docker-compose-confluent.yml up
@@ -478,7 +487,8 @@ docker-compose -f docker-compose-confluent.yml up
 
 ### Conector de ficheros - FileStream
 
-**FileStreamSource**: lee el contenido de un fichero línea a línea y lo almacena en un topic.
+**FileStreamSource**: para leer el contenido de un fichero línea a línea y almacenarlo en un topic.
+
 En este ejemplo vamos a copiar el contenido del fichero **/etc/passwd** hacia el topic **file.content**
 
 0. Listar los conectores (plugins) disponibles
@@ -509,7 +519,8 @@ curl -d @"file_source.json" -H "Content-Type: application/json" -X POST http://c
 
 ```bash
 curl -X GET http://localhost:8083/connectors
-# curl -X GET http://connect:8083/connectors # Desde un container
+# Desde un container
+curl -X GET http://connect:8083/connectors
 ```
 
 3. Leer del topic
@@ -555,6 +566,15 @@ cd connect
 curl -d @"file_sink.json" -H "Content-Type: application/json" -X POST http://localhost:8083/connectors
 ```
 
+Desde un container:
+
+```bash
+cd connect
+docker cp file_source.json broker:/home/appuser
+docker exec -it broker bash
+curl -d @"file_sink.json" -H "Content-Type: application/json" -X POST http://connect:8083/connectors
+```
+
 2. Verificamos el estado del conector
 
 ```bash
@@ -576,10 +596,12 @@ Control+C
 
 ```bash
 # Desde el contenedor de Connect
+docke exec -it connect bash
+
 cat /tmp/output.txt
 ```
 
-5. Y que los inválidos son enviados al DLQ
+5. Y que los erróneos son enviados al DLQ
 
 ```bash
 kafka-console-consumer --bootstrap-server broker:29092 --topic dlq-file-sink-topic --from-beginning
@@ -612,6 +634,13 @@ docker-compose  -f docker-compose-postgres-debezium.yml up
 
 **Contraseña**: root
 
+Acceso mediante contenedor
+
+```bash
+docker exec -it postgres bash
+psql -h localhost -U postgres -d postgres
+```
+
 3. Crear la tabla a replicar
 
 ```sql
@@ -630,11 +659,81 @@ create database cdc;
 
 5. Añadir filas a la tabla **postgres.public.orders**
 
+```bash
+insert into public.orders values (1, 'Buy_Phone');
+insert into public.orders values (2, 'Sell_PC');
+```
+
 6. Verificar que las filas se sincronizan en **cdc.public.table_public_orders**
+
+```bash
+psql -h localhost -U postgres -d cdc; # \c cdc; -- también hace el cambio de DB
+
+select * from cdc.public.table_public_orders;
+```
 
 ### Ejercicio Kafka Connect:
 
 Modificar los conectores para sincronizar además la tabla **products**
+
+1. Detener los contenedores (Control + C)
+2. En el fichero **images/docker-connect-debezium.yml** modifica:
+
+   - **table.include.list** del connector **postgres-source-connector**
+
+   - **topics** del connector **postgres-sink-connector**
+
+3. Construir nuevamente la imagen
+
+```bash
+docker-compose  -f docker-compose-postgres-debezium.yml build
+```
+
+4. Ejecutar los contenedores
+
+```bash
+docker-compose  -f docker-compose-postgres-debezium.yml up
+```
+
+5. Crear tabla de productos
+
+```bash
+docker exec -it postgres bash
+psql -h localhost -U postgres -d postgres
+```
+
+```sql
+   CREATE TABLE postgres.public.products (
+   id int4 NOT NULL,
+   "product_name" varchar NULL,
+   CONSTRAINT products_pk PRIMARY KEY (id)
+   );
+```
+
+6. Añadir filas a la tabla **postgres.public.products**
+
+```bash
+insert into public.products values (1, 'Phone');
+insert into public.products values (2, 'PC');
+```
+
+7. Verificar que las filas se sincronizan en **cdc.public.table_public_products**
+
+```bash
+psql -h localhost -U postgres -d cdc
+
+select * from cdc.public.table_public_products;
+```
+
+### Reiniciar la ingesta de una tabla desde el inicio.
+
+Útil durante cambios de schema de las fuentes de datos o cambios en la ETL, etc
+
+- Procedimiento:
+  - Eliminar el source connector
+  - Eliminar el topic al que source connector envía eventos
+  - Borrar todos los datos en las tablas a re-ingestar
+  - Recrear el source connector
 
 ## Schema registry
 
