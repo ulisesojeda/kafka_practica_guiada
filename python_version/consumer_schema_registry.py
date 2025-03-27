@@ -2,8 +2,11 @@ from confluent_kafka import DeserializingConsumer
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 
-KAFKA_BROKER = "localhost:9092"
-SCHEMA_REGISTRY_URL = "http://localhost:8081"
+#KAFKA_BROKER = "localhost:9092"
+KAFKA_BROKER = "broker:29092"
+
+#SCHEMA_REGISTRY_URL = "http://localhost:8081"
+SCHEMA_REGISTRY_URL = "http://schema-registry:8081"
 TOPIC = "users"
 
 schema_registry_client = SchemaRegistryClient({"url": SCHEMA_REGISTRY_URL})

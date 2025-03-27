@@ -300,6 +300,7 @@ Preparación para ejecución local:
 
 ```bash
 # Crear y activar Python virtual environment
+# Si se ejecutan los scripts desde el contenedor, este paso no es necesario
 
 cd python_version
 pip install virtualenv
@@ -328,23 +329,27 @@ python3 producer.py
 python3 consumer.py
 ```
 
-4. Ejecutar el consumidor nuevamente. Qué sucede ?
+4. Ejecutar el consumidor nuevamente. Qué sucede y porqué ?
+   <details>
+   <summary><b>Solución</b></summary>
 
    No se consumen más mensajes. Porque el offset del consumer group se encuentra al final del topic, pues todos los mensajes ya han sido previamente consumidos
+
+   </details>
 
 5. Resetear el offset del consumer group para volver a ingestar todos los mensajes.
 
    Este procedimiento es útil cuando se cambia la lógica del consumidor y necesitamos reproducir todos los mensajes.
    También es posible volver a consumir desde un offset específico.
 
-- Cerrar el consumidor en caso de estar ejecutándose, en caso contrario no podremos resetear el offset
-- Ejecutamos el siguiente comando desde un broker
+   - Cerrar el consumidor en caso de estar ejecutándose, en caso contrario no podremos resetear el offset
+   - Ejecutamos el siguiente comando desde un broker
 
-  ```bash
-  kafka-consumer-groups --bootstrap-server kafka1:19092  --topic simple-topic --reset-offsets --to-earliest --group py-group --execute
-  ```
+   ```bash
+   kafka-consumer-groups --bootstrap-server kafka1:19092  --topic simple-topic --reset-offsets --to-earliest --group py-group --execute
+   ```
 
-- Ejecutamos el consumidor nuevamente para consumir todos los mensajes nuevamente
+   - Ejecutamos el consumidor nuevamente para consumir todos los mensajes nuevamente
 
 6. Repetir el anterior procedimiento para consumir sólo desde el 4to mensaje
 
@@ -448,8 +453,6 @@ Para este apartado utilizaremos el docker compose de Confluent
 docker-compose -f docker-compose-confluent.yml up
 
 ```
-
-kafka-console-producer --bootstrap-server broker:29092 --topic compact-topic --property "parse.key=true" --property "key.separator=,"
 
 ### Conector de ficheros - FileStream
 
@@ -583,8 +586,9 @@ docker-compose  -f docker-compose-postgres-debezium.yml up
 
 2. Acceder a la instancia de Posgres mediante DBeaver, DataGrip, psql, etc
 
-Usuario: postgres
-Contraseña: root
+**Usuario**: postgres
+
+**Contraseña**: root
 
 3. Crear la tabla a replicar
 
@@ -612,19 +616,55 @@ Modificar los conectores para sincronizar además la tabla **products**
 
 ## Schema registry
 
-# TODO Explicacion y diagrama de Schema registry
+Kafka Schema Registry es un servicio que gestiona y almacena los esquemas de datos utilizados en Kafka, asegurando la compatibilidad entre productores y consumidores.
 
-1. Ejecutar producer_schema_registry.py
+¿Para qué sirve?
+
+- Estandariza la estructura de los datos enviados a Kafka.
+- Evita errores al cambiar la estructura del mensaje.
+- Reduce el tamaño de los mensajes, ya que solo se envía el ID del esquema y no todo el esquema.
+- Permite compatibilidad entre versiones de esquemas (Backward, Forward, Full).
+
+![Schema-Registry](https://docs.confluent.io/platform/current/_images/schema-registry-ecosystem.jpg)
+
+Ejemplo de flujo con Schema Registry:
+
+- El productor consulta el Schema Registry y obtiene el ID del esquema.
+- Kafka envía solo los datos y el ID del esquema, reduciendo el tamaño del mensaje.
+- El consumidor consulta el Schema Registry y decodifica el mensaje correctamente.
+
+### Ejemplo de Productor/Consumidor con Schema Registry
+
+1. Ejecutar el productor
+
+```bash
+cd python_version
+python3 producer_schema_registry.py
+```
 
 2. Forzar backward compatibility
 
 ```bash
  curl -X PUT http://localhost:8081/config/users-value --header "Content-Type: application/json" --data '{"compatibility": "BACKWARD"}'
+ # Si se ejecuta desde el contenedor
+ curl -X PUT http://schema-registry:8081/config/users-value --header "Content-Type: application/json" --data '{"compatibility": "BACKWARD"}'
 ```
 
-3. Ejecutar consumer_schema_registry.py
+3. Ejecutar el consumidor
 
-4. Ejecutar producer2_schema_registry.py y verificar el error de backward compatibility
+```bash
+cd python_version
+python3 consumer_schema_registry.py
+```
+
+4. Ejecutar el productor que introduce un cambio de schema
+
+```bash
+cd python_version
+python3 producer2_schema_registry.py
+```
+
+Verificar el error de backward compatibility
 
 ## Streams API
 

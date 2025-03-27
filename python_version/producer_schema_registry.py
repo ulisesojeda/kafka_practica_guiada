@@ -4,8 +4,11 @@ from confluent_kafka.schema_registry.avro import AvroSerializer
 import json
 
 # Kafka & Schema Registry Configuration
-KAFKA_BROKER = "localhost:9092"
-SCHEMA_REGISTRY_URL = "http://localhost:8081"
+#KAFKA_BROKER = "localhost:9092"
+KAFKA_BROKER = "broker:29092"
+
+#SCHEMA_REGISTRY_URL = "http://localhost:8081"
+SCHEMA_REGISTRY_URL = "http://schema-registry:8081"
 TOPIC = "users"
 
 # Define Avro Schema

@@ -3,8 +3,11 @@ from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 import json
 
-KAFKA_BROKER = "localhost:9092"
-SCHEMA_REGISTRY_URL = "http://localhost:8081"
+#KAFKA_BROKER = "localhost:9092"
+KAFKA_BROKER = "broker:29092"
+
+#SCHEMA_REGISTRY_URL = "http://localhost:8081"
+SCHEMA_REGISTRY_URL = "http://schema-registry:8081"
 TOPIC = "users"
 
 # Aplicamos un cambio que no es backward compatible. Se renombra name a full_name
