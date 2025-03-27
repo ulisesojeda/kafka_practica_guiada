@@ -13,7 +13,8 @@ logging.basicConfig(
 # Creamos nuestro Kafka Producer pasandole TODOS los Broker
 # Utilizaremos la libreria JSON para serializar nuestros mensajes
 producer = KafkaProducer(
-    bootstrap_servers=["127.0.0.1:9092", "127.0.0.1:9093", "127.0.0.1:9094"],
+    bootstrap_servers=["kafka1:19092", "kafka2:19093", "kafka3:19094"],
+    #bootstrap_servers=["127.0.0.1:9092", "127.0.0.1:9093", "127.0.0.1:9094"],
     value_serializer=lambda m: json.dumps(m).encode("utf-8"),
 )
 

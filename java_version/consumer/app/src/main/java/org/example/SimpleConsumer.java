@@ -10,7 +10,8 @@ public class SimpleConsumer {
         String topicName = "test-topic";
         
         Properties props = new Properties();
-        props.put("bootstrap.servers", "localhost:9092"); 
+        //props.put("bootstrap.servers", "localhost:9092"); 
+        props.put("bootstrap.servers", "kafka1:19092"); 
         props.put("group.id", "test-group");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");

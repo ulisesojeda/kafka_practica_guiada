@@ -1,7 +1,8 @@
 from confluent_kafka import Producer
 
 producer_config = {
-    'bootstrap.servers': 'localhost:9092',
+    #'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': 'kafka1:19092',
     'transactional.id': 'my-transactional-producer',
     'enable.idempotence': True,  # exactly-once semantics. Equivalente a ENABLE_IDEMPOTENCE_CONFIG = True en Java
     'acks': 'all',  # ACKS_CONFIG = ALL

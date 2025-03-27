@@ -9,7 +9,8 @@ public class SimpleProducer {
         String topicName = "test-topic";
 
         Properties props = new Properties();
-        props.put("bootstrap.servers", "localhost:9092"); 
+        //props.put("bootstrap.servers", "localhost:9092"); 
+        props.put("bootstrap.servers", "kafka1:19092"); 
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 

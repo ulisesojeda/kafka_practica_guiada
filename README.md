@@ -286,7 +286,7 @@ Produce el siguiente evento:
 
 Observad el rebalanceo y particionado que se produce mediante la partition key elegida. ¿Qué casos de uso encontramos para esta funcionalidad?
 
-Validamos los observado en la descripción del consumer group:
+Validamos lo observado en la descripción del consumer group:
 
 ```bash
 kafka-consumer-groups --bootstrap-server kafka1:19092 --group console-group-1 --describe
@@ -294,7 +294,7 @@ kafka-consumer-groups --bootstrap-server kafka1:19092 --group console-group-1 --
 
 ## Python Producer/Consumer
 
-### Notas: consultar el anexo 1 para ejecutar los ejemplos de Python y Java desde un container
+### Notas: consultar el Anexo 1 para ejecutar los ejemplos de Python y Java desde un container
 
 Preparación para ejecución local:
 
@@ -303,7 +303,7 @@ Preparación para ejecución local:
 
 cd python_version
 pip install virtualenv
-python -m virtualenv venv
+python3 -m virtualenv venv
 source venv/bin/activate
 pip install kafka-python
 ```
@@ -315,15 +315,17 @@ kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --par
 ```
 
 2. Ejecutar el productor
+   **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
-python producer.py
+python3 producer.py
 ```
 
 3. Ejecutar el consumidor
+   **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
-python consumer.py
+python3 consumer.py
 ```
 
 4. Ejecutar el consumidor nuevamente. Qué sucede ?
@@ -415,15 +417,17 @@ pip install confluent_kafka
 ```
 
 2. Ejecutar el productor
+   **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
-python producer_tx.py
+python3 producer_tx.py
 ```
 
 3. Ejecutar el consumidor
+   **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
-python consumer_tx.py
+python3 consumer_tx.py
 ```
 
 ## Kafka Connect
@@ -434,9 +438,9 @@ Como cualquier otra API construida "on top" of producer/consumer utiliza la prop
 
 Mas info sobre como levantar connect e instalar plugin [aquí](https://docs.confluent.io/platform/current/connect/userguide.html)
 
-Además connect nos provee de un (API REST)[https://docs.confluent.io/platform/current/connect/references/restapi.html] para poder interactuar de manera amigable.
+Además connect nos provee de un [API REST](https://docs.confluent.io/platform/current/connect/references/restapi.html) para poder interactuar de manera amigable.
 
-Además existe un (Hub)[https://www.confluent.io/hub/] donde podremos buscar y descargar los connectors oficiales y no oficiales que necesitemos.
+Además existe un [Hub](https://www.confluent.io/hub/) donde podremos buscar y descargar los connectors oficiales y no oficiales que necesitemos.
 
 Para este apartado utilizaremos el docker compose de Confluent
 
@@ -579,6 +583,9 @@ docker-compose  -f docker-compose-postgres-debezium.yml up
 
 2. Acceder a la instancia de Posgres mediante DBeaver, DataGrip, psql, etc
 
+Usuario: postgres
+Contraseña: root
+
 3. Crear la tabla a replicar
 
 ```sql
@@ -617,18 +624,16 @@ Modificar los conectores para sincronizar además la tabla **products**
 
 3. Ejecutar consumer_schema_registry.py
 
-4. Ejecutar producer2_schema_registry.py y verificar error de backward compatibility
+4. Ejecutar producer2_schema_registry.py y verificar el error de backward compatibility
 
 ## Streams API
 
 ## KSQL
 
-## Anexo 1: Ejecución de ejemplos desde un contenedor
+## Anexo 1: Ejecución de los ejemplos desde un contenedor
 
 ```bash
-cd images
-docker build -f docker-runner.yml -t runner ../
-docker run --network="host" -it runner
+docker exec -it runner bash
 ```
 
 ## Anexo 2: Solucionar problemas con la ejecución de contenedores
