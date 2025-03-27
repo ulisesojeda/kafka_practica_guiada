@@ -226,6 +226,8 @@ kafka-console-consumer --bootstrap-server kafka1:19092 --topic compact-topic --p
 
 ## Producer / Consumer API
 
+# TODO. Intro y explicacion sobre que imagen usar. Explicar ejecucion desde contenedor
+
 ### Console producer y consumer
 
 Primero crear un topic **console-example** con 3 particiones y factor de réplica 3.
@@ -294,7 +296,7 @@ kafka-consumer-groups --bootstrap-server kafka1:19092 --group console-group-1 --
 
 ## Python Producer/Consumer
 
-### Notas: consultar el Anexo 1 para ejecutar los ejemplos de Python y Java desde un container
+### Nota: consultar el Anexo 1 para ejecutar los ejemplos de Python y Java desde un container
 
 Preparación para ejecución local:
 
@@ -312,6 +314,8 @@ pip install kafka-python
 1. Crear topic con 3 particiones
 
 ```bash
+docker exec -it kafka-broker-1 bash
+
 kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 3
 ```
 
@@ -319,6 +323,7 @@ kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --par
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
+cd python_version
 python3 producer.py
 ```
 
@@ -326,6 +331,7 @@ python3 producer.py
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
+cd python_version
 python3 consumer.py
 ```
 
@@ -389,6 +395,14 @@ Nota: el máximo nivel de paralelismo lo define el número de particiones del to
 
 ## Java API Producer/Consumer
 
+### Nota: consultar el Anexo 1 para ejecutar los ejemplos de Python y Java desde un container
+
+0. En caso de ejecución desde el contenedor
+
+```bash
+docker exec -it runner bash
+```
+
 1. Ejecutar el productor
 
 ```bash
@@ -415,16 +429,23 @@ gradlew.bat run
 
 ## Transacciones (Exactly Once Semantics)
 
+0. En caso de ejecución desde el contenedor
+
+```bash
+docker exec -it runner bash
+```
+
 1. Instalar librería confluent_kafka
 
 ```bash
-pip install confluent_kafka
+pip install confluent_kafka  # No es necesario desde el contenedor
 ```
 
 2. Ejecutar el productor
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
+cd python_version
 python3 producer_tx.py
 ```
 
@@ -432,6 +453,7 @@ python3 producer_tx.py
    **Modificar el bootstrap-server con la opción comentada "localhost" si se ejecuta fuera del contenedor**
 
 ```bash
+cd python_version
 python3 consumer_tx.py
 ```
 

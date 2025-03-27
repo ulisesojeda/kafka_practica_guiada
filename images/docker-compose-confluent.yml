@@ -42,6 +42,7 @@ services:
       # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
       # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    restart: always
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.7.2
@@ -55,6 +56,7 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    restart: always
 
   connect:
     image: cnfldemos/kafka-connect-datagen:0.6.4-7.6.0
@@ -80,6 +82,7 @@ services:
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/usr/share/filestream-connectors"
+    restart: always
 
   ksqldb-server:
     image: confluentinc/cp-ksqldb-server:7.7.2
@@ -101,6 +104,7 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
+    restart: always
 
   ksqldb-cli:
     image: confluentinc/cp-ksqldb-cli:7.7.2
@@ -111,6 +115,7 @@ services:
       - ksqldb-server
     entrypoint: /bin/sh
     tty: true
+    restart: always
 
   ksql-datagen:
     image: confluentinc/ksqldb-examples:7.7.2
@@ -133,6 +138,7 @@ services:
       STREAMS_BOOTSTRAP_SERVERS: broker:29092
       STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
       STREAMS_SCHEMA_REGISTRY_PORT: 8081
+    restart: always
 
   rest-proxy:
     image: confluentinc/cp-kafka-rest:7.7.2
@@ -148,6 +154,7 @@ services:
       KAFKA_REST_BOOTSTRAP_SERVERS: 'broker:29092'
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+    restart: always
 
   flink-sql-client:
     image: cnfldemos/flink-sql-client-kafka:1.19.1-scala_2.12-java17
@@ -157,6 +164,7 @@ services:
     container_name: flink-sql-client
     environment:
       FLINK_JOBMANAGER_HOST: flink-jobmanager
+    restart: always
 
   flink-jobmanager:
     image: cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
@@ -170,6 +178,7 @@ services:
       FLINK_PROPERTIES=
       jobmanager.rpc.address: flink-jobmanager
       rest.bind-port: 9081
+    restart: always
 
   flink-taskmanager:
     image: cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
@@ -184,3 +193,4 @@ services:
       FLINK_PROPERTIES=
       jobmanager.rpc.address: flink-jobmanager
       taskmanager.numberOfTaskSlots: 10
+    restart: always
