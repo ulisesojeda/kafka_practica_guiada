@@ -466,6 +466,28 @@ cd python_version
 python3 consumer_tx.py
 ```
 
+4. Validar que el consumidor sólo consume mensajes commited
+
+- Ejecutar un console-consumer
+
+```bash
+kafka-console-consumer --bootstrap-server kafka2:19093 --topic topic-tx --from-beginning
+```
+
+- Lanzar el consumidor de Transacciones
+
+```bash
+python3 consumer_tx.py
+```
+
+- Ejecutor el productor con una transacción fallida
+
+```bash
+python3 producer_tx_error.py
+```
+
+- Verificar que el mensaje es recibido en el console-consumer pero no en el Python consumer
+
 ## Kafka Connect
 
 Connect es una herramienta que nos permite ingestar desde y hacia sistemas de persistencia externos (incluidos topics de kafka) usando workers (máquinas tanto en modo standalone como distribuido) donde tendremos instalado el core de Connect (normalmente una instalación común de Kafka nos valdría) usando para ello una serie de plugins (connectors).
@@ -528,7 +550,8 @@ curl -X GET http://connect:8083/connectors
 ```bash
 docker exec -it broker bash
 kafka-topics --bootstrap-server localhost:9092 --list  # Verificar que existe el topic file.content
- kafka-console-consumer --bootstrap-server localhost:9092 --topic file.content --from-beginning
+
+kafka-console-consumer --bootstrap-server localhost:9092 --topic file.content --from-beginning
 ```
 
 4. Ver el estado del conector. Útil para detección de errores
