@@ -315,12 +315,12 @@ source venv/bin/activate
 pip install kafka-python
 ```
 
-1. Crear topic con 3 particiones
+1. Crear topic con 1 partición
 
 ```bash
 docker exec -it kafka-broker-1 bash
 
-kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 3
+kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 1
 ```
 
 2. Ejecutar el productor
