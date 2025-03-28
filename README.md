@@ -3,8 +3,10 @@
 ## Requisitos:
 
 1. Docker
-2. JDK 11+
-3. Gradle
+2. docker-compose
+3. Python
+4. Java JDK 11+
+5. Gradle
 
 Nota: Para la instalación del SDK se recomienda utilizar [SDKman](https://sdkman.io/)
 
