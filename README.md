@@ -226,7 +226,9 @@ kafka-console-consumer --bootstrap-server kafka1:19092 --topic compact-topic --p
 
 ## Producer / Consumer API
 
-# TODO. Intro y explicacion sobre que imagen usar. Explicar ejecucion desde contenedor
+```bash
+docker-compose -f docker-compose-cluster-kafka.yml up
+```
 
 ### Console producer y consumer
 
