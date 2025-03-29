@@ -431,6 +431,10 @@ kafka-console-consumer --bootstrap-server kafka1:19092 --topic simple-topic --pr
 kafka-console-consumer --bootstrap-server kafka1:19092 --topic simple-topic --property print.key=true --from-beginning --partition 1
 ```
 
+## Ejercicio productor con varios topics
+
+Completar y ejecutar el script **python_version/ejercicio_producer.py**
+
 ## Java API Producer/Consumer
 
 ### Nota: consultar el Anexo 1 para ejecutar los ejemplos de Python y Java desde un container
