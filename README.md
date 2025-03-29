@@ -404,6 +404,33 @@ kafka-consumer-groups --bootstrap-server kafka1:19092 --group py-group --describ
 
 Nota: el máximo nivel de paralelismo lo define el número de particiones del topic. El consumer-group asignará un único consumidor por partición, los restantes consumidores permanecerán en stand-by hasta que alguno de los anterior falle.
 
+## Particionador customizado
+
+1. Creamos un topic con 2 particiones
+
+```bash
+kafka-topics --bootstrap-server kafka1:19092 --topic simple-topic --delete
+kafka-topics --bootstrap-server kafka1:19092 --create --topic simple-topic --partitions 2
+```
+
+2. Ejecutamos el Productor
+
+```bash
+python3 custom_partitioner.py
+```
+
+3. Leemos de la partición 0 y vetificamos que llegan mensajes con valores pares
+
+```bash
+kafka-console-consumer --bootstrap-server kafka1:19092 --topic simple-topic --property print.key=true --from-beginning --partition 0
+```
+
+4. Leemos de la partición 1 y vetificamos que llegan mensajes con valores impares
+
+```bash
+kafka-console-consumer --bootstrap-server kafka1:19092 --topic simple-topic --property print.key=true --from-beginning --partition 1
+```
+
 ## Java API Producer/Consumer
 
 ### Nota: consultar el Anexo 1 para ejecutar los ejemplos de Python y Java desde un container
