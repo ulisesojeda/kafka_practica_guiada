@@ -860,3 +860,27 @@ docker exec -it runner bash
 ```bash
 docker system prune
 ```
+
+# Anexo 3: Repaso de conceptos básicos
+
+- Clúster Kafka
+  ![cluster](https://www.ionos.es/digitalguide/fileadmin/_processed_/5/6/csm_apache-kafka-ES-1_2552f353b6.webp)
+
+- Estructura de un mensaje
+  ![Mensaje](https://images.ctfassets.net/gt6dp23g0g38/7kjwh5nb53QL29LuUYAREZ/b8300cddd1e2034086878fdfd077413c/header.jpg)
+
+- Estructura de un tópico
+  ![Topic](https://miro.medium.com/v2/resize:fit:416/1*9Qm9qjZbvfV0X1pAlUUxcw.png)
+
+- Offset
+  ![offset](https://cdn.educba.com/academy/wp-content/uploads/2021/01/Kafka-offset.jpg)
+
+- Grupo de consumidores
+  ![consumer-group](https://docs.datastax.com/en/kafka/doc/kafka/images/partitionsKafka.png)
+
+## Ejercicios
+
+1. Crear topic "equipos" con 1 partición
+2. Producir eventos en el topic "equipos"
+3. Leer los eventos del topic
+4. Resetear el offset del topic para volver a consumir desde el 2do mensaje
