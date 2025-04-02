@@ -847,10 +847,11 @@ Verificar el error de backward compatibility
 
 ## Streams API
 
-Para estos ejercicios utlizaremos la imagen de Kafka standalone
+Para estos ejercicios utlizaremos el docker-compose **docker-compose-cluster-kafka** y ejecutaremos los ejemplos desde el **runner**
 
 ```bash
-docker run -p 9092:9092 --rm --name kafka apache/kafka:3.7.0
+docker compose -f docker-compose-cluster-kafka.yml build
+docker compose -f docker-compose-cluster-kafka.yml run
 ```
 
 ### Quix Streams
@@ -884,25 +885,25 @@ python3 consumer.py
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka bash
+docker exec -it kafka1 bash
 ```
 
 2. Creamos el topic de entrada
 
 ```bash
-/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic streams-plaintext-input
+kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic streams-plaintext-input
 ```
 
 3. Ejecutamos el productor
 
 ```bash
- /opt/kafka/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
+kafka-console-producer --broker-list kafka1:19092 --topic streams-plaintext-input
 ```
 
 3. Ejecutamos el consumidor en el topic de salida
 
 ```bash
-/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+kafka-console-consumer --bootstrap-server kafka1:19092 \
     --topic streams-wordcount-output \
     --from-beginning \
     --property print.key=true \
@@ -914,6 +915,8 @@ docker exec -it kafka bash
 4. Ejecutar la aplicación
 
 ```bash
+docker exec -it runner bash
+
 cd kstreams/wordcount
 ./gradlew build
 ./gradlew run
@@ -928,14 +931,14 @@ Aplicación que filtra (envía al topic de salida) los eventos con un identifica
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka bash
+docker exec -it kafka1 bash
 ```
 
 2. Crear el topic de entrada
 
 ```bash
-/opt/kafka/bin/kafka-topics.sh --create \
-          --bootstrap-server localhost:9092 \
+kafka-topics --create \
+          --bootstrap-server kafka1:19092 \
           --replication-factor 1 \
           --partitions 1 \
           --topic basic-streams-input
@@ -944,6 +947,8 @@ docker exec -it kafka bash
 2. Ejecutar la aplicación
 
 ```bash
+docker exec -it runner bash
+
 cd kstreams/filter_map
 ./gradlew build
 ./gradlew run
@@ -952,13 +957,13 @@ cd kstreams/filter_map
 3. Ejecutar el productor
 
 ```bash
-/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic basic-streams-input
+kafka-console-producer --broker-list kafka1:19092 --topic basic-streams-input
 ```
 
 4. Ejecutar el consumidor
 
 ```bash
-   bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+   kafka-console-consumer --bootstrap-server kafka1:19092 \
     --topic basic-streams-output \
     --from-beginning \
     --property print.key=true \
@@ -984,18 +989,20 @@ cd kstreams/filter_map
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka bash
+docker exec -it kafka1 bash
 ```
 
 2. Crear topic de entrada
 
 ```bash
-/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic words-input
+kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic words-input
 ```
 
 3. Ejecutar la aplicación
 
 ```bash
+docker exec -it runner bash
+
 cd kstreams/rolling-aggregate
 ./gradlew build
 ./gradlew run
@@ -1004,7 +1011,7 @@ cd kstreams/rolling-aggregate
 4. Producir eventos
 
 ```bash
-/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic words-input --property parse.key=true --property key.separator=:
+kafka-console-producer --broker-list kafka1:19092 --topic words-input --property parse.key=true --property key.separator=:
 
 > id1:datos1
 > id2:datos2
@@ -1015,7 +1022,7 @@ cd kstreams/rolling-aggregate
 5. Verificar con el consumidor
 
 ```bash
-/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic words-aggregated --from-beginning
+kafka-console-consumer --bootstrap-server kafka1:19092 --topic words-aggregated --from-beginning
 ```
 
 ### 4. Agregaciones con ventana temporal
@@ -1025,18 +1032,20 @@ Se agrupan los eventos con igual key dentro de una ventana temporal de 1 minuto
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka bash
+docker exec -it kafka1 bash
 ```
 
 2. Crear topic de entrada
 
 ```bash
-/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic words-input
+kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic words-input
 ```
 
 3. Ejecutar la aplicación
 
 ```bash
+docker exec -it runner bash
+
 cd kstreams/windowed-aggregate
 ./gradlew build
 ./gradlew run
@@ -1045,7 +1054,7 @@ cd kstreams/windowed-aggregate
 4. Producir eventos
 
 ```bash
-   ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic words-input --property parse.key=true --property key.separator=:
+   kafka-console-producer --broker-list kafka1:19092 --topic words-input --property parse.key=true --property key.separator=:
 
 > id1:evento_1
 > id1:kafka_1
@@ -1057,7 +1066,7 @@ cd kstreams/windowed-aggregate
 5. Verificar en el consumidor
 
 ```bash
-   bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic words-aggregated --from-beginning
+   kafka-console-consumer --bootstrap-server kafka1:19092 --topic words-aggregated --from-beginning
 ```
 
 ### 5. Joins
@@ -1071,20 +1080,22 @@ SELECT u.*, d.* FROM users s JOIN details d ON u.id = d.user_id
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka bash
+docker exec -it kafka1 bash
 ```
 
 2. Creator topics
 
 ```bash
-/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic users
+kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic users
 
-/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic data
+kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic data
 ```
 
 3. Ejecutar la aplicación
 
 ```bash
+docker exec -it runner bash
+
 cd kstreams/joins
 ./gradlew build
 ./gradlew run
@@ -1094,19 +1105,19 @@ cd kstreams/joins
    **Importante**: los eventos deben tener el mismo key
 
 ```bash
-/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic users --property parse.key=true --property key.separator=:
+kafka-console-producer --broker-list kafka1:19092 --topic users --property parse.key=true --property key.separator=:
 id:user1
 ```
 
 ```bash
-/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic data --property parse.key=true --property key.separator=:
+kafka-console-producer --broker-list kafka1:19092 --topic data --property parse.key=true --property key.separator=:
 id:data_user1
 ```
 
 4. Verificar el topic de salida
 
 ```bash
-/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic join  --from-beginning
+kafka-console-consumer --bootstrap-server kafka1:19092 --topic join  --from-beginning
 ```
 
 ## KSQL
@@ -1118,6 +1129,7 @@ Para este apartado utilizaremos el docker-compose **docker-compose-confluent**
 2. Ejecutamos el docker-compose
 
 ```bash
+docker-compose -f docker-compose-confluent.yml build
 docker-compose -f docker-compose-confluent.yml up
 ```
 
