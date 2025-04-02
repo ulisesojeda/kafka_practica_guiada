@@ -847,7 +847,538 @@ Verificar el error de backward compatibility
 
 ## Streams API
 
+Para estos ejercicios utlizaremos la imagen de Kafka standalone
+
+```bash
+docker run -p 9092:9092 --rm --name kafka apache/kafka:3.7.0
+```
+
+### Quix Streams
+
+Kafka Streams sólo tiene API para Java/Scala. Sin embargo, existen aplicaciones que intentan replicar su funcionamiento en otros lenguajes.
+
+Quix-Streams es una aproximación de Kafka Streams en Python y lo utilizaremos como soporte para explicar algunos conceptos de Streams desde Python
+
+1. Instalamos la librería
+
+```bash
+pip install quixstreams
+```
+
+2. Ejecutamos el productor
+
+```bash
+cd quix-streams
+python3 producer.py
+```
+
+2. Ejecutamos el consumidor
+
+```bash
+cd quix-streams
+python3 consumer.py
+```
+
+### 1. Contar palabras
+
+1. Accedemos al contenedor del broker
+
+```bash
+docker exec -it kafka bash
+```
+
+2. Creamos el topic de entrada
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic streams-plaintext-input
+```
+
+3. Ejecutamos el productor
+
+```bash
+ /opt/kafka/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
+```
+
+3. Ejecutamos el consumidor en el topic de salida
+
+```bash
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+    --topic streams-wordcount-output \
+    --from-beginning \
+    --property print.key=true \
+    --property print.value=true \
+    --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+    --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+```
+
+4. Ejecutar la aplicación
+
+```bash
+cd kstreams/wordcount
+./gradlew build
+./gradlew run
+```
+
+5. Introducimos texto en el productor con algunas palabras repetidas y verificamos el resultado en el topic de salida.
+
+### 2. Filter-Map
+
+Aplicación que filtra (envía al topic de salida) los eventos con un identificador mayor que 1000.
+
+1. Accedemos al contenedor del broker
+
+```bash
+docker exec -it kafka bash
+```
+
+2. Crear el topic de entrada
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --create \
+          --bootstrap-server localhost:9092 \
+          --replication-factor 1 \
+          --partitions 1 \
+          --topic basic-streams-input
+```
+
+2. Ejecutar la aplicación
+
+```bash
+cd kstreams/filter_map
+./gradlew build
+./gradlew run
+```
+
+3. Ejecutar el productor
+
+```bash
+/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic basic-streams-input
+```
+
+4. Ejecutar el consumidor
+
+```bash
+   bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+    --topic basic-streams-output \
+    --from-beginning \
+    --property print.key=true \
+    --property print.value=true \
+    --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+    --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+```
+
+5. Introducir en productor
+
+```bash
+> orderNumber-2000
+> no_output
+> orderNumber-3000
+> orderNumber-1000
+> orderNumber-5000
+```
+
+6. Verificar en el consumidor que sólo los valores > 1000 son producidos
+
+### 3. Agregaciones sin ventana temporal
+
+1. Accedemos al contenedor del broker
+
+```bash
+docker exec -it kafka bash
+```
+
+2. Crear topic de entrada
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic words-input
+```
+
+3. Ejecutar la aplicación
+
+```bash
+cd kstreams/rolling-aggregate
+./gradlew build
+./gradlew run
+```
+
+4. Producir eventos
+
+```bash
+/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic words-input --property parse.key=true --property key.separator=:
+
+> id1:datos1
+> id2:datos2
+> id1:identificador1
+> id2:identificador2
+```
+
+5. Verificar con el consumidor
+
+```bash
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic words-aggregated --from-beginning
+```
+
+### 4. Agregaciones con ventana temporal
+
+Se agrupan los eventos con igual key dentro de una ventana temporal de 1 minuto
+
+1. Accedemos al contenedor del broker
+
+```bash
+docker exec -it kafka bash
+```
+
+2. Crear topic de entrada
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic words-input
+```
+
+3. Ejecutar la aplicación
+
+```bash
+cd kstreams/windowed-aggregate
+./gradlew build
+./gradlew run
+```
+
+4. Producir eventos
+
+```bash
+   ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic words-input --property parse.key=true --property key.separator=:
+
+> id1:evento_1
+> id1:kafka_1
+> id2:event_2
+> id1:apache_1
+> id2:kafka_2
+```
+
+5. Verificar en el consumidor
+
+```bash
+   bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic words-aggregated --from-beginning
+```
+
+### 5. Joins
+
+Ejemplo de JOIN de 2 KStreams de forma similar a un join de dos tablas relacionales. La principal diferencia es que los KStreams tiene que tener la misma key para hacer efectivo el JOIN.
+
+```sql
+SELECT u.*, d.* FROM users s JOIN details d ON u.id = d.user_id
+```
+
+1. Accedemos al contenedor del broker
+
+```bash
+docker exec -it kafka bash
+```
+
+2. Creator topics
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic users
+
+/opt/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic data
+```
+
+3. Ejecutar la aplicación
+
+```bash
+cd kstreams/joins
+./gradlew build
+./gradlew run
+```
+
+3. Producir eventos en ambos topic.
+   **Importante**: los eventos deben tener el mismo key
+
+```bash
+/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic users --property parse.key=true --property key.separator=:
+id:user1
+```
+
+```bash
+/opt/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic data --property parse.key=true --property key.separator=:
+id:data_user1
+```
+
+4. Verificar el topic de salida
+
+```bash
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic join  --from-beginning
+```
+
 ## KSQL
+
+Para este apartado utilizaremos el docker-compose **docker-compose-confluent**
+
+1. Detenemos cualquier contenedor que tengamos en ejecución
+
+2. Ejecutamos el docker-compose
+
+```bash
+docker-compose -f docker-compose-confluent.yml up
+```
+
+3. Accedemos a la consola de ksqlDB
+
+```bash
+docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+```
+
+4. Establecemos el offset a earliest para todos los streams
+
+```sql
+SET 'auto.offset.reset' = 'earliest';
+```
+
+### 1. Filtrado
+
+Creamos el stream **orders**
+
+```sql
+CREATE stream orders (id INTEGER KEY, item VARCHAR, address STRUCT <
+city  VARCHAR, state VARCHAR >)
+WITH (KAFKA_TOPIC='orders', VALUE_FORMAT='json', partitions=1);
+```
+
+Insertamos datos en el stream
+
+```sql
+INSERT INTO orders(id, item, address)
+VALUES(140, 'Mauve Widget', STRUCT(city:='Ithaca', state:='NY'));
+INSERT INTO orders(id, item, address)
+VALUES(141, 'Teal Widget', STRUCT(city:='Dallas', state:='TX'));
+INSERT INTO orders(id, item, address)
+VALUES(142, 'Violet Widget', STRUCT(city:='Pasadena', state:='CA'));
+INSERT INTO orders(id, item, address)
+VALUES(143, 'Purple Widget', STRUCT(city:='Yonkers', state:='NY'));
+INSERT INTO orders(id, item, address)
+VALUES(144, 'Tan Widget', STRUCT(city:='Amarillo', state:='TX'));
+```
+
+Creamos un stream con datos filtrados
+
+```sql
+CREATE STREAM ny_orders AS SELECT * FROM ORDERS WHERE ADDRESS->STATE='NY' EMIT CHANGES;
+```
+
+Validamos el filtrado
+
+```sql
+SELECT * FROM ny_orders EMIT CHANGES;
+```
+
+### 2. Búsquedas y JOINs
+
+1. Crear tabla **items**
+
+```sql
+CREATE TABLE items (id VARCHAR PRIMARY KEY, make VARCHAR, model VARCHAR, unit_price DOUBLE)
+WITH (KAFKA_TOPIC='items', VALUE_FORMAT='avro', PARTITIONS=1);
+```
+
+2. Insertar datos
+
+```sql
+INSERT INTO items VALUES('item_3', 'Spalding', 'TF-150', 19.99);
+INSERT INTO items VALUES('item_4', 'Wilson', 'NCAA Replica', 29.99);
+INSERT INTO items VALUES('item_7', 'SKLZ', 'Control Training', 49.99);
+```
+
+3. Eliminamos elementos del anterior ejercicio
+
+```sql
+DROP STREAM ny_orders;
+DROP STREAM orders;
+```
+
+4. Creamos nueva stream **orders**
+
+```sql
+CREATE STREAM orders (ordertime BIGINT, orderid INTEGER, itemid VARCHAR, orderunits INTEGER)
+WITH (KAFKA_TOPIC='item_orders', VALUE_FORMAT='avro', PARTITIONS=1);
+```
+
+5. Creamos streams **orders_enriched** que une la tabla **items** con la stream **orders**
+
+```sql
+CREATE STREAM orders_enriched AS
+SELECT o.*, i.*,
+	o.orderunits * i.unit_price AS total_order_value
+FROM orders o LEFT OUTER JOIN items i
+on o.itemid = i.id;
+```
+
+6. Insertamos datos en **orders**
+
+```sql
+INSERT INTO orders VALUES (1620501334477, 65, 'item_7', 5);
+INSERT INTO orders VALUES (1620502553626, 67, 'item_3', 2);
+INSERT INTO orders VALUES (1620503110659, 68, 'item_7', 7);
+INSERT INTO orders VALUES (1620504934723, 70, 'item_4', 1);
+INSERT INTO orders VALUES (1620505321941, 74, 'item_7', 3);
+INSERT INTO orders VALUES (1620506437125, 72, 'item_7', 9);
+INSERT INTO orders VALUES (1620508354284, 73, 'item_3', 4);
+```
+
+7. Validamos el resultado del JOIN
+
+```sql
+SELECT * FROM orders_enriched EMIT CHANGES;
+```
+
+### 3. Unir streams
+
+1. Crear stream **orders_uk** e insertar eventos
+
+```sql
+CREATE STREAM orders_uk (ordertime BIGINT, orderid INTEGER, itemid VARCHAR, orderunits INTEGER,
+    address STRUCT< street VARCHAR, city VARCHAR, state VARCHAR>)
+WITH (KAFKA_TOPIC='orders_uk', VALUE_FORMAT='json', PARTITIONS=1);
+
+INSERT INTO orders_uk VALUES (1620501334477, 65, 'item_7', 5,
+  STRUCT(street:='234 Thorpe Street', city:='York', state:='England'));
+INSERT INTO orders_uk VALUES (1620502553626, 67, 'item_3', 2,
+  STRUCT(street:='2923 Alexandra Road', city:='Birmingham', state:='England'));
+INSERT INTO orders_uk VALUES (1620503110659, 68, 'item_7', 7,
+  STRUCT(street:='536 Chancery Lane', city:='London', state:='England'));
+
+```
+
+2. Crear stream **orders_us** e insertar eventos
+
+```sql
+CREATE STREAM orders_us (ordertime BIGINT, orderid INTEGER, itemid VARCHAR, orderunits INTEGER,
+    address STRUCT< street VARCHAR, city VARCHAR, state VARCHAR>)
+WITH (KAFKA_TOPIC='orders_us', VALUE_FORMAT='json', PARTITIONS=1);
+
+INSERT INTO orders_us VALUES (1620501334477, 65, 'item_7', 5,
+  STRUCT(street:='6743 Lake Street', city:='Los Angeles', state:='California'));
+INSERT INTO orders_us VALUES (1620502553626, 67, 'item_3', 2,
+  STRUCT(street:='2923 Maple Ave', city:='Mountain View', state:='California'));
+INSERT INTO orders_us VALUES (1620503110659, 68, 'item_7', 7,
+  STRUCT(street:='1492 Wandering Way', city:='Berkley', state:='California'));
+```
+
+3. Crear la unión de los streams mediante estas 2 queries
+
+```sql
+CREATE STREAM orders_combined AS
+SELECT 'US' AS source, ordertime, orderid, itemid, orderunits, address
+FROM orders_us;
+
+INSERT INTO orders_combined
+SELECT 'UK' AS source, ordertime, orderid, itemid, orderunits, address
+FROM orders_uk;
+```
+
+4. Verificar el resultado
+
+```sql
+SELECT * FROM orders_combined emit changes;
+```
+
+### 4. Agregaciones con estado (vistas materializadas/materialized views)
+
+1. Crear stream **movements**
+
+```sql
+CREATE STREAM MOVEMENTS(PERSON VARCHAR KEY, LOCATION VARCHAR)
+WITH (VALUE_FORMAT='JSON', PARTITIONS=1, KAFKA_TOPIC='movements');
+```
+
+2. Insertar datos
+
+```sql
+INSERT INTO MOVEMENTS VALUES ('Robin', 'York');
+INSERT INTO MOVEMENTS VALUES ('Robin', 'Leeds');
+INSERT INTO MOVEMENTS VALUES ('Allison', 'Denver');
+INSERT INTO MOVEMENTS VALUES ('Robin', 'Ilkley');
+INSERT INTO MOVEMENTS VALUES ('Allison', 'Boulder');
+```
+
+3. Ver número de movimientos por persona
+
+```sql
+SELECT PERSON, COUNT (*)
+FROM MOVEMENTS GROUP BY PERSON EMIT CHANGES;
+```
+
+4. Cantidad de posiciones únicas que cada persona ha visitado
+
+```sql
+SELECT PERSON, COUNT_DISTINCT(LOCATION)
+FROM MOVEMENTS GROUP BY PERSON EMIT CHANGES;
+```
+
+5. Crear vista materializada
+
+```sql
+CREATE TABLE PERSON_STATS AS
+SELECT PERSON,
+		LATEST_BY_OFFSET(LOCATION) AS LATEST_LOCATION,
+		COUNT(*) AS LOCATION_CHANGES,
+		COUNT_DISTINCT(LOCATION) AS UNIQUE_LOCATIONS
+	FROM MOVEMENTS
+GROUP BY PERSON
+EMIT CHANGES;
+```
+
+6. Insertar más datos
+
+```sql
+INSERT INTO MOVEMENTS VALUES('Robin', 'Manchester');
+INSERT INTO MOVEMENTS VALUES('Allison', 'Loveland');
+INSERT INTO MOVEMENTS VALUES('Robin', 'London');
+INSERT INTO MOVEMENTS VALUES('Allison', 'Aspen');
+INSERT INTO MOVEMENTS VALUES('Robin', 'Ilkley');
+INSERT INTO MOVEMENTS VALUES('Allison', 'Vail');
+INSERT INTO MOVEMENTS VALUES('Robin', 'York');
+```
+
+7. Verificar resultados para una persona
+
+```sql
+SELECT * FROM PERSON_STATS WHERE PERSON = 'Allison';
+```
+
+### 5. Pull y Push queries
+
+**Push query**: se identifica por la clausula **EMIT CHANGES**. El cliente recibe un mensage por cada cambio que ocurre en la stream. Se mantiene la conexión abierta a la espera de nuevos cambios hasta que el cliente cierra la misma.
+
+**Pull query**: Devuelve el estado actual al cliente y termina la conexión. Son similares a las query **SELECT** de las base de datos relacionales (MySQL, Postgres, etc)
+
+1. Pull query
+
+```sql
+SELECT LATEST_LOCATION, LOCATION_CHANGES, UNIQUE_LOCATIONS
+FROM PERSON_STATS WHERE PERSON = 'Allison';
+```
+
+2. Push query
+
+```sql
+SELECT LATEST_LOCATION, LOCATION_CHANGES, UNIQUE_LOCATIONS
+FROM PERSON_STATS WHERE PERSON = 'Allison' EMIT CHANGES;
+```
+
+3. En otra sesión de KSQL
+
+```bash
+docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+```
+
+```sql
+INSERT INTO MOVEMENTS VALUES ('Robin', 'York');
+INSERT INTO MOVEMENTS VALUES ('Robin', 'Leeds');
+INSERT INTO MOVEMENTS VALUES ('Allison', 'Denver');
+INSERT INTO MOVEMENTS VALUES ('Robin', 'Ilkley');
+INSERT INTO MOVEMENTS VALUES ('Allison', 'Boulder');
+```
+
+4. Verificar los nuevos mensajes en la sesión de la push query
 
 ## Anexo 1: Ejecución de los ejemplos desde un contenedor
 
