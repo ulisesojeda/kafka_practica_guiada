@@ -2,7 +2,8 @@ from quixstreams import Application
 
 # Create an Application - the main configuration entry point
 app = Application(
-    broker_address="localhost:9092",
+    #broker_address="localhost:9092",
+    broker_address="kafka1:19092",
     consumer_group="text-splitter-v1",
     auto_offset_reset="earliest",
 )
