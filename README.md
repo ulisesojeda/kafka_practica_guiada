@@ -814,6 +814,10 @@ Ejemplo de flujo con Schema Registry:
 
 ### Ejemplo de Productor/Consumidor con Schema Registry
 
+```bash
+docker-compose -f docker-compose-confluent.yml up
+```
+
 1. Ejecutar el productor
 
 ```bash
