@@ -1,7 +1,8 @@
 from quixstreams import Application
 
 # Create an Application - the main configuration entry point
-app = Application(broker_address="localhost:9092", consumer_group="text-splitter-v1")
+#app = Application(broker_address="localhost:9092", consumer_group="text-splitter-v1")
+app = Application(broker_address="kafka1:19092", consumer_group="text-splitter-v1")
 
 # Define a topic with chat messages in JSON format
 messages_topic = app.topic(name="messages", value_serializer="json")
