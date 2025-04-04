@@ -93,7 +93,7 @@ RUN cat > config/sink-postgres.properties <<EOF
    schema.evolution=basic
    use.time.zone=UTC
    topics=table.public.orders
-   #topics=table.public.orders,table.public.orders
+   #topics=table.public.orders,table.public.products
 EOF
 
 # Start script that runs Kafka broker and Connect
