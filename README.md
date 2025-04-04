@@ -936,14 +936,14 @@ Aplicación que filtra (envía al topic de salida) los eventos con un identifica
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka1 bash
+docker exec -it kafka-broker-1 bash
 ```
 
 2. Crear el topic de entrada
 
 ```bash
 kafka-topics --create \
-          --bootstrap-server kafka1:19092 \
+          --bootstrap-server kafka-broker-1:19092 \
           --replication-factor 1 \
           --partitions 1 \
           --topic basic-streams-input
@@ -962,13 +962,13 @@ cd kstreams/filter_map
 3. Ejecutar el productor
 
 ```bash
-kafka-console-producer --broker-list kafka1:19092 --topic basic-streams-input
+kafka-console-producer --broker-list kafka-broker-1:19092 --topic basic-streams-input
 ```
 
 4. Ejecutar el consumidor
 
 ```bash
-   kafka-console-consumer --bootstrap-server kafka1:19092 \
+   kafka-console-consumer --bootstrap-server kafka-broker-1:19092 \
     --topic basic-streams-output \
     --from-beginning \
     --property print.key=true \
@@ -994,13 +994,13 @@ kafka-console-producer --broker-list kafka1:19092 --topic basic-streams-input
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka1 bash
+docker exec -it kafka-broker-1 bash
 ```
 
 2. Crear topic de entrada
 
 ```bash
-kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic words-input
+kafka-topics --create --bootstrap-server kafka-broker-1:19092 --replication-factor 1 --partitions 1 --topic words-input
 ```
 
 3. Ejecutar la aplicación
@@ -1016,7 +1016,7 @@ cd kstreams/rolling-aggregate
 4. Producir eventos
 
 ```bash
-kafka-console-producer --broker-list kafka1:19092 --topic words-input --property parse.key=true --property key.separator=:
+kafka-console-producer --broker-list kafka-broker-1:19092 --topic words-input --property parse.key=true --property key.separator=:
 
 > id1:datos1
 > id2:datos2
@@ -1027,7 +1027,7 @@ kafka-console-producer --broker-list kafka1:19092 --topic words-input --property
 5. Verificar con el consumidor
 
 ```bash
-kafka-console-consumer --bootstrap-server kafka1:19092 --topic words-aggregated --from-beginning
+kafka-console-consumer --bootstrap-server kafka-broker-1:19092 --topic words-aggregated --from-beginning
 ```
 
 ### 4. Agregaciones con ventana temporal
@@ -1037,13 +1037,13 @@ Se agrupan los eventos con igual key dentro de una ventana temporal de 1 minuto
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka1 bash
+docker exec -it kafka-broker-1 bash
 ```
 
 2. Crear topic de entrada
 
 ```bash
-kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic words-input
+kafka-topics --create --bootstrap-server kafka-broker-1:19092 --replication-factor 1 --partitions 1 --topic words-input
 ```
 
 3. Ejecutar la aplicación
@@ -1059,7 +1059,7 @@ cd kstreams/windowed-aggregate
 4. Producir eventos
 
 ```bash
-   kafka-console-producer --broker-list kafka1:19092 --topic words-input --property parse.key=true --property key.separator=:
+   kafka-console-producer --broker-list kafka-broker-1:19092 --topic words-input --property parse.key=true --property key.separator=:
 
 > id1:evento_1
 > id1:kafka_1
@@ -1071,7 +1071,7 @@ cd kstreams/windowed-aggregate
 5. Verificar en el consumidor
 
 ```bash
-   kafka-console-consumer --bootstrap-server kafka1:19092 --topic words-aggregated --from-beginning
+   kafka-console-consumer --bootstrap-server kafka-broker-1:19092 --topic words-aggregated --from-beginning
 ```
 
 ### 5. Joins
@@ -1085,15 +1085,15 @@ SELECT u.*, d.* FROM users s JOIN details d ON u.id = d.user_id
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka1 bash
+docker exec -it kafka-broker-1 bash
 ```
 
 2. Creator topics
 
 ```bash
-kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic users
+kafka-topics --create --bootstrap-server kafka-broker-1:19092 --replication-factor 1 --partitions 1 --topic users
 
-kafka-topics --create --bootstrap-server kafka1:19092 --replication-factor 1 --partitions 1 --topic data
+kafka-topics --create --bootstrap-server kafka-broker-1:19092 --replication-factor 1 --partitions 1 --topic data
 ```
 
 3. Ejecutar la aplicación
@@ -1110,19 +1110,19 @@ cd kstreams/joins
    **Importante**: los eventos deben tener el mismo key
 
 ```bash
-kafka-console-producer --broker-list kafka1:19092 --topic users --property parse.key=true --property key.separator=:
+kafka-console-producer --broker-list kafka-broker-1:19092 --topic users --property parse.key=true --property key.separator=:
 id:user1
 ```
 
 ```bash
-kafka-console-producer --broker-list kafka1:19092 --topic data --property parse.key=true --property key.separator=:
+kafka-console-producer --broker-list kafka-broker-1:19092 --topic data --property parse.key=true --property key.separator=:
 id:data_user1
 ```
 
 4. Verificar el topic de salida
 
 ```bash
-kafka-console-consumer --bootstrap-server kafka1:19092 --topic join  --from-beginning
+kafka-console-consumer --bootstrap-server kafka-broker-1:19092 --topic join  --from-beginning
 ```
 
 ## KSQL
