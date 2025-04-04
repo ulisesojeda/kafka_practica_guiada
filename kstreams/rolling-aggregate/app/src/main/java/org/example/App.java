@@ -23,7 +23,7 @@ public class App {
         Properties streamsProps = new Properties();
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "aggregations");
         //streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker:9092");
+        streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-broker-1:19092");
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         streamsProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
