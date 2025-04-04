@@ -890,7 +890,7 @@ python3 consumer.py
 1. Accedemos al contenedor del broker
 
 ```bash
-docker exec -it kafka1 bash
+docker exec -it kafka-broker-1 bash
 ```
 
 2. Creamos el topic de entrada
