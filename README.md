@@ -821,7 +821,7 @@ docker-compose -f docker-compose-confluent.yml up
 1. Ejecutar el productor
 
 ```bash
-docker run -it runner bash # Opcional
+docker exec -it runner bash # Opcional
 cd python_version
 python3 producer_schema_registry.py
 ```
