@@ -809,7 +809,7 @@ Kafka Schema Registry es un servicio que gestiona y almacena los esquemas de dat
 Ejemplo de flujo con Schema Registry:
 
 - El productor consulta el Schema Registry y obtiene el ID del esquema.
-- Kafka envía solo los datos y el ID del esquema, reduciendo el tamaño del mensaje.
+- El productor envía solo los datos y el ID del esquema, reduciendo el tamaño del mensaje.
 - El consumidor consulta el Schema Registry y decodifica el mensaje correctamente.
 
 ### Ejemplo de Productor/Consumidor con Schema Registry
