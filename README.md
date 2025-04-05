@@ -1190,6 +1190,7 @@ SELECT * FROM ny_orders EMIT CHANGES;
 Ejercicios: 
 
 1 . Crear una pull query que seleccione los eventos que tengan como state 'NY' y city 'Ithaca'
+
 2 . Crear una pull query que seleccione los eventos que tengan como state 'CA' o item 'Teal Widget'
 
 ### 2. Búsquedas y JOINs
